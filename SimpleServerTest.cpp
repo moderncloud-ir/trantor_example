@@ -24,12 +24,22 @@ int main()
 
     server->setConnectionCallback([](const trantor::TcpConnectionPtr& connPtr) {
         std::clog << __LINE__ << __FUNCTION__ << std::endl;
-        auto size = connPtr->bytesReceived();
-        auto buff = connPtr->getRecvBuffer();
+        if (connPtr->connected())
+        {
+            std::clog << __LINE__ << __FUNCTION__ << std::endl;
+            LOG_DEBUG << "new connection from " << connPtr->peerAddr().toIpPort();
+            auto size = connPtr->bytesReceived();
+            auto buff = connPtr->getRecvBuffer();
 
-        std::clog << "received data : \n" << buff->read(size);
+            std::clog << "received data : \n" << buff->read(size);
 
-        connPtr->send(*buff);
+            connPtr->send(*buff);
+        }
+        else if (connPtr->disconnected())
+        {
+            std::clog << __LINE__ << __FUNCTION__ << std::endl;
+            LOG_DEBUG << "conn disconnected!" << connPtr->peerAddr().toIpPort();
+        }
     });
     server->setRecvMessageCallback(
         [](const trantor::TcpConnectionPtr& connPtr, trantor::MsgBuffer* buff) {
